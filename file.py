@@ -55,3 +55,25 @@ filtered_df.show()
 
 # json_df.show(truncate=False)
 dynf = DynamicFrame.fromDF(filtered_df, glueContext, "dynamic_frame_name")
+
+
+#final
+
+erroneous_condition = (col("container_id").isNull()
+                    & col("log").isNull()
+                    & col("ecs_cluster").isNull()
+                    & col("ecs_task_arn").isNull()
+                    & col("ecs_task_definition").isNull()
+                    & col("date").isNotNull())
+
+# Filter the DataFrame to keep only the rows that do not match the erroneous schema
+cleaned_df = df.toDF().filter(erroneous_condition)
+not_cleaned_df = df.toDF().filter(~erroneous_condition)
+
+# Show the cleaned DataFrame
+
+null_columns = [col_name for col_name in cleaned_df.columns if cleaned_df.filter(col(col_name).isNotNull()).count() == 0]
+
+# print(null_columns)
+
+filtered_df = cleaned_df.drop(*null_columns)
